@@ -47,43 +47,23 @@ export default function LoginPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
+    e.preventDefault()
+    setIsLoading(true)
 
-  try {
-    const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-      }),
-    })
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    const data = await res.json()
+      // For demo purposes, show error for specific credentials
+      if (formData.email === "error@example.com") {
+        setLoginError("Invalid email or password. Please try again.")
+        return
+      }
 
-    if (!res.ok) {
-      setLoginError(data.message || "Invalid email or password.")
-      return
-    }
-
-    toast({
-      title: "Login successful!",
-      description: `Welcome back, ${data.user.name || "User"}!`,
-    })
-
-    // Store token if needed
-    localStorage.setItem("token", data.token)
-
-    router.push("/dashboard")
-  } catch (error) {
-    setLoginError("Server error. Please try again.")
-  } finally {
-    setIsLoading(false)
-  }
-}
+      toast({
+        title: "Login successful!",
+        description: "Welcome back to SkillShare Hub.",
+      })
 
       // Redirect to dashboard
       router.push("/dashboard")
