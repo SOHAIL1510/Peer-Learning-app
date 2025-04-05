@@ -47,44 +47,44 @@ export default function LoginPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-  
-    try {
-      const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      })
-  
-      const data = await res.json()
-  
-      if (!res.ok) {
-        setLoginError(data.message || "Invalid email or password.")
-        return
-      }
-  
-      toast({
-        title: "Login successful!",
-        description: `Welcome back, ${data.user.name || "User"}!`,
-      })
-  
-      // Store token if needed
-      localStorage.setItem("token", data.token)
-  
-      router.push("/dashboard")
-    } catch (error) {
-      setLoginError("Server error. Please try again.")
-    } finally {
-      setIsLoading(false)
+  e.preventDefault()
+  setIsLoading(true)
+
+  try {
+    const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      setLoginError(data.message || "Invalid email or password.")
+      return
     }
+
+    toast({
+      title: "Login successful!",
+      description: `Welcome back, ${data.user.name || "User"}!`,
+    })
+
+    // Store token if needed
+    localStorage.setItem("token", data.token)
+
+    router.push("/dashboard")
+  } catch (error) {
+    setLoginError("Server error. Please try again.")
+  } finally {
+    setIsLoading(false)
   }
-  
+}
+
       // Redirect to dashboard
       router.push("/dashboard")
     } catch (error) {
