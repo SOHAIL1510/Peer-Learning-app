@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { motion } from "framer-motion"
 import { Pencil, User } from "lucide-react"
 
@@ -111,6 +111,10 @@ export default function ProfilePage() {
       setIsLoading(false)
     }
   }
+
+  useEffect(()=>{
+    fetchUser()
+  },[])
 
   return (
     <div className="flex min-h-screen flex-col">
