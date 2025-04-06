@@ -31,6 +31,40 @@ export default function ProfilePage() {
     bio: profile.bio,
   })
 
+   const fetchUser = async () => {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        router.push("/login")
+        return
+      }
+
+      try {
+        const res = await fetch("https://skillshare-hub-backend-1.onrender.com/api/auth/user", {
+          method: "GET",
+          headers: {
+            Authorization: token, // Or "Bearer " + token if you use Bearer strategy
+          },
+        })
+
+        const data = await res.json()
+
+        if (!res.ok) {
+          setError(data.message || "Failed to fetch user.")
+          return
+        }
+         setProfile((prev) => ({
+        ...prev,
+        fullName: data.name,
+        email: data.email,
+      }))
+      } catch (err) {
+        console.error("User fetch failed:", err)
+        setError("Server error. Try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
