@@ -51,7 +51,7 @@ export default function LoginPage() {
    setIsLoading(true)
  
    try {
-     const res = await fetch("https://skillshare-hub-backend-1.onrender.com/api/auth/login", {
+     const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/login", {
        method: "POST",
        headers: {
          "Content-Type": "application/json",
