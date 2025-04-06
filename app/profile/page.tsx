@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Pencil, User } from "lucide-react"
 
@@ -15,9 +15,12 @@ import { AppHeader } from "@/components/app-header"
 import { useToast } from "@/components/ui/use-toast"
 
 export default function ProfilePage() {
+  const router = useRouter()
   const { toast } = useToast()
+
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [profile, setProfile] = useState({
     fullName: "John Doe",
@@ -31,39 +34,45 @@ export default function ProfilePage() {
     bio: profile.bio,
   })
 
-   const fetchUser = async () => {
-      const token = localStorage.getItem("token")
-      if (!token) {
-        router.push("/login")
+  const fetchUser = async () => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/login")
+      return
+    }
+
+    try {
+      const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/user", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await res.json()
+      console.log("User res is", data)
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/login")
+          return
+        }
+        setError(data.message || "Failed to fetch user.")
         return
       }
 
-      try {
-        const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/user", {
-          method: "GET",
-          headers: {
-            Authorization: token, // Or "Bearer " + token if you use Bearer strategy
-          },
-        })
-        console.log("user res is",res);
-        const data = await res.json()
-
-        if (!res.ok) {
-          setError(data.message || "Failed to fetch user.")
-          return
-        }
-         setProfile((prev) => ({
+      setProfile((prev) => ({
         ...prev,
         fullName: data.name,
         email: data.email,
       }))
-      } catch (err) {
-        console.error("User fetch failed:", err)
-        setError("Server error. Try again later.")
-      } finally {
-        setLoading(false)
-      }
+    } catch (err) {
+      console.error("User fetch failed:", err)
+      setError("Server error. Try again later.")
+    } finally {
+      setIsLoading(false)
     }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -112,9 +121,9 @@ export default function ProfilePage() {
     }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchUser()
-  },[])
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -208,4 +217,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-
