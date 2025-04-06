@@ -45,7 +45,7 @@ export default function ProfilePage() {
             Authorization: token, // Or "Bearer " + token if you use Bearer strategy
           },
         })
-
+        console.log("user res is",res);
         const data = await res.json()
 
         if (!res.ok) {
