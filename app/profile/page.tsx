@@ -39,7 +39,7 @@ export default function ProfilePage() {
       }
 
       try {
-        const res = await fetch("https://skillshare-hub-backend-1.onrender.com/api/auth/user", {
+        const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/user", {
           method: "GET",
           headers: {
             Authorization: token, // Or "Bearer " + token if you use Bearer strategy
