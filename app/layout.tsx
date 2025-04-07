@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'SkillShare Hub',
-  description: 'Created with v0',
+  description: 'Created by Sohail Khan',
   generator: 'v0.dev',
 }
 
