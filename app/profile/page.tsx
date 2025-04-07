@@ -23,8 +23,8 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
 
   const [profile, setProfile] = useState({
-    fullName: "John Doe",
-    email: "john.doe@example.com",
+    fullName: "Sohail Khan",
+    email: "soha985012@gmail.com",
     role: "Learner/Host",
     bio: "Passionate about learning and teaching programming concepts. I enjoy hosting sessions on JavaScript and React.",
   })
