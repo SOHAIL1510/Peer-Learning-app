@@ -47,42 +47,89 @@ export default function LoginPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-   e.preventDefault()
-   setIsLoading(true)
- 
-   try {
-     const res = await fetch("https://skillshare-hub-backend.onrender.com/api/auth/login", {
-       method: "POST",
-       headers: {
-         "Content-Type": "application/json",
-       },
-       body: JSON.stringify({
-         email: formData.email,
-         password: formData.password,
-       }),
-     })
- 
-     const data = await res.json()
- 
-     if (!res.ok) {
-       setLoginError(data.message || "Invalid email or password.")
-       return
-     }
- 
-     toast({
-       title: "Login successful!",
-       description: `Welcome back, ${data.user.name || "User"}!`,
-     })
- 
-     // Store token if needed
-     localStorage.setItem("token", data.token)
- 
-     router.push("/dashboard")
-   } catch (error) {
-     setLoginError("Server error. Please try again.")
-   } finally {
-     setIsLoading(false)
-   }
+    e.preventDefault()
+    setIsLoading(true)
+
+    try {
+      // Get users from localStorage
+      const users = JSON.parse(localStorage.getItem("users") || "[]")
+
+      // Find user with matching email and password
+      const user = users.find((u: any) => u.email === formData.email && u.password === formData.password)
+
+      if (!user) {
+        // For demo purposes, create a demo user if no users exist
+        if (users.length === 0 && formData.email === "demo@example.com" && formData.password === "Demo123!") {
+          const demoUser = {
+            id: "demo-user",
+            name: "Demo User",
+            email: "demo@example.com",
+            password: "Demo123!",
+            bio: "This is a demo user account.",
+            avatarUrl: "",
+          }
+
+          // Add demo user to users array
+          users.push(demoUser)
+          localStorage.setItem("users", JSON.stringify(users))
+
+          // Set current user
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify({
+              id: demoUser.id,
+              name: demoUser.name,
+              email: demoUser.email,
+              bio: demoUser.bio,
+              avatarUrl: demoUser.avatarUrl,
+            }),
+          )
+
+          // Set authentication state
+          localStorage.setItem("isAuthenticated", "true")
+
+          toast({
+            title: "Demo login successful!",
+            description: "Welcome to SkillShare Hub, Demo User.",
+          })
+
+          // Redirect to dashboard
+          router.push("/dashboard")
+          return
+        }
+
+        setLoginError("Invalid email or password. Please try again.")
+        setIsLoading(false)
+        return
+      }
+
+      // Set current user (excluding password for security)
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          bio: user.bio,
+          avatarUrl: user.avatarUrl,
+        }),
+      )
+
+      // Set authentication state
+      localStorage.setItem("isAuthenticated", "true")
+
+      toast({
+        title: "Login successful!",
+        description: `Welcome back, ${user.name}!`,
+      })
+
+      // Redirect to dashboard
+      router.push("/dashboard")
+    } catch (error) {
+      setLoginError("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -177,6 +224,12 @@ export default function LoginPage() {
               Sign up
             </Link>
           </p>
+        </div>
+
+        <div className="text-center text-xs text-muted-foreground">
+          <p>For demo purposes, you can use:</p>
+          <p>Email: demo@example.com</p>
+          <p>Password: Demo123!</p>
         </div>
       </div>
     </motion.div>
