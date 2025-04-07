@@ -1,279 +1,297 @@
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight, BookOpen, Calendar, Globe, Users } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+"use client"
 
-export default function LandingPage() {
+import type React from "react"
+
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Eye, EyeOff, Users } from "lucide-react"
+import { motion } from "framer-motion"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/use-toast"
+import { FormInput } from "@/components/form-input"
+
+export default function SignupPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    bio: "", // Added bio field
+  })
+
+  const [errors, setErrors] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    bio: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Real-time validation
+    validateField(name, value)
+  }
+
+  const validateField = (name: string, value: string) => {
+    let error = ""
+
+    switch (name) {
+      case "fullName":
+        if (!value.trim()) error = "Full name is required"
+        else if (value.trim().length < 3) error = "Name must be at least 3 characters"
+        break
+      case "email":
+        if (!value) error = "Email is required"
+        else if (!/\S+@\S+\.\S+/.test(value)) error = "Email is invalid"
+        break
+      case "password":
+        if (!value) error = "Password is required"
+        else if (value.length < 8) error = "Password must be at least 8 characters"
+        else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value))
+          error = "Password must contain uppercase, lowercase, and number"
+        break
+      case "confirmPassword":
+        if (!value) error = "Please confirm your password"
+        else if (value !== formData.password) error = "Passwords do not match"
+        break
+      default:
+        break
+    }
+
+    setErrors((prev) => ({ ...prev, [name]: error }))
+    return !error
+  }
+
+  const validateForm = () => {
+    let isValid = true
+
+    // Validate all fields
+    Object.keys(formData).forEach((key) => {
+      const field = key as keyof typeof formData
+      if (field !== "bio") {
+        // Bio is optional
+        const isFieldValid = validateField(field, formData[field])
+        if (!isFieldValid) isValid = false
+      }
+    })
+
+    return isValid
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) return
+
+    setIsLoading(true)
+
+    try {
+      // Check if email already exists
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]")
+      const emailExists = existingUsers.some((user: any) => user.email === formData.email)
+
+      if (emailExists) {
+        setErrors((prev) => ({ ...prev, email: "Email already in use" }))
+        setIsLoading(false)
+        return
+      }
+
+      // Create new user object
+      const newUser = {
+        id: Date.now().toString(),
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password, // In a real app, this would be hashed
+        bio: formData.bio || "No bio information available yet.",
+        avatarUrl: "",
+      }
+
+      // Add to users array
+      existingUsers.push(newUser)
+      localStorage.setItem("users", JSON.stringify(existingUsers))
+
+      // Set current user
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          bio: newUser.bio,
+          avatarUrl: newUser.avatarUrl,
+        }),
+      )
+
+      // Set authentication state
+      localStorage.setItem("isAuthenticated", "true")
+
+      toast({
+        title: "Account created!",
+        description: "You have successfully signed up for SkillShare Hub.",
+      })
+
+      // Redirect to dashboard
+      router.push("/dashboard")
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign up failed",
+        description: "There was a problem with your signup. Please try again.",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center text-center">
+          <Link href="/" className="flex items-center gap-2 mb-4">
             <Users className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">SkillShare Hub</span>
-          </div>
-          <nav className="hidden md:flex gap-6">
-            <Link href="#features" className="text-sm font-medium hover:text-primary">
-              Features
-            </Link>
-            <Link href="#testimonials" className="text-sm font-medium hover:text-primary">
-              Testimonials
-            </Link>
-            <Link href="#faq" className="text-sm font-medium hover:text-primary">
-              FAQ
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                Login
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
-          </div>
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+          <p className="text-sm text-muted-foreground mt-2">Join our community of learners and start sharing skills</p>
         </div>
-      </header>
-      <main className="flex-1">
-        <section className="container py-24 md:py-32 space-y-8">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">
-              Learn Together, <span className="text-primary">Grow Together</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-[700px]">
-              Connect with peers, share knowledge, and accelerate your learning through collaborative study sessions.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <Link href="/signup">
-                <Button size="lg" className="gap-2">
-                  Get Started <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline">
-                  Login
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="relative mx-auto mt-16 max-w-5xl overflow-hidden rounded-xl border shadow-xl">
-            <Image
-              src="/placeholder.svg?height=720&width=1280"
-              width={1280}
-              height={720}
-              alt="Dashboard preview"
-              className="w-full"
-              priority
+
+        <form onSubmit={handleSubmit} className="space-y-6 mt-8">
+          <div className="space-y-4">
+            <FormInput
+              label="Full Name"
+              id="fullName"
+              name="fullName"
+              placeholder="Enter your full name"
+              value={formData.fullName}
+              onChange={handleChange}
+              error={errors.fullName}
+              required
             />
-          </div>
-        </section>
 
-        <section id="features" className="bg-muted/50 py-24">
-          <div className="container space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                Features That Make Learning Together Better
-              </h2>
-              <p className="text-muted-foreground md:text-xl max-w-[700px] mx-auto">
-                Everything you need to create, join, and manage peer learning sessions
+            <FormInput
+              label="Email"
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              error={errors.email}
+              required
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio (Optional)</Label>
+              <Input
+                id="bio"
+                name="bio"
+                placeholder="Tell us a bit about yourself"
+                value={formData.bio}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={errors.password ? "border-destructive" : ""}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                </Button>
+              </div>
+              {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
+              <p className="text-xs text-muted-foreground">
+                Password must be at least 8 characters with uppercase, lowercase, and number
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-background p-6 rounded-lg shadow-sm border">
-                <Calendar className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-bold mb-2">Flexible Scheduling</h3>
-                <p className="text-muted-foreground">
-                  Create sessions that fit your calendar. Choose the perfect time for you and your peers.
-                </p>
-              </div>
-              <div className="bg-background p-6 rounded-lg shadow-sm border">
-                <BookOpen className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-bold mb-2">Topic Categories</h3>
-                <p className="text-muted-foreground">
-                  Organize sessions by subject matter to help peers find exactly what they're looking for.
-                </p>
-              </div>
-              <div className="bg-background p-6 rounded-lg shadow-sm border">
-                <Globe className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-bold mb-2">Online & Offline</h3>
-                <p className="text-muted-foreground">
-                  Host sessions virtually or in-person depending on your preference and availability.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <section id="testimonials" className="py-24">
-          <div className="container space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">What Our Users Say</h2>
-              <p className="text-muted-foreground md:text-xl max-w-[700px] mx-auto">
-                Join thousands of students who are already enhancing their education through peer learning
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-background p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Image
-                      src="/placeholder.svg?height=40&width=40"
-                      width={40}
-                      height={40}
-                      alt="User avatar"
-                      className="rounded-full"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Sarah Johnson</h4>
-                    <p className="text-sm text-muted-foreground">Computer Science Student</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">
-                  "SkillShare Hub has transformed how I learn. Being able to connect with peers who are studying the
-                  same topics has made complex subjects much easier to understand."
-                </p>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={errors.confirmPassword ? "border-destructive" : ""}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="sr-only">{showConfirmPassword ? "Hide password" : "Show password"}</span>
+                </Button>
               </div>
-              <div className="bg-background p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Image
-                      src="/placeholder.svg?height=40&width=40"
-                      width={40}
-                      height={40}
-                      alt="User avatar"
-                      className="rounded-full"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Michael Chen</h4>
-                    <p className="text-sm text-muted-foreground">Data Science Enthusiast</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">
-                  "I've hosted several sessions on Python programming, and the feedback has been incredible. Teaching
-                  others has deepened my own understanding of the material."
-                </p>
-              </div>
-              <div className="bg-background p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Image
-                      src="/placeholder.svg?height=40&width=40"
-                      width={40}
-                      height={40}
-                      alt="User avatar"
-                      className="rounded-full"
-                    />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Aisha Patel</h4>
-                    <p className="text-sm text-muted-foreground">Language Learner</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">
-                  "Finding conversation partners for practicing Spanish was always difficult until I found SkillShare
-                  Hub. Now I have weekly sessions with peers from around the world."
-                </p>
-              </div>
+              {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword}</p>}
             </div>
           </div>
-        </section>
 
-        <section id="faq" className="bg-muted/50 py-24">
-          <div className="container space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Frequently Asked Questions</h2>
-              <p className="text-muted-foreground md:text-xl max-w-[700px] mx-auto">
-                Find answers to common questions about SkillShare Hub
-              </p>
-            </div>
-            <div className="max-w-3xl mx-auto">
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>How do I join a session?</AccordionTrigger>
-                  <AccordionContent>
-                    After creating an account, you can browse available sessions on the dashboard. Click on any session
-                    that interests you and then click the "Join Session" button. You'll receive details on how to
-                    connect.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>Can I host my own learning sessions?</AccordionTrigger>
-                  <AccordionContent>
-                    Yes! Any registered user can host a session. Simply click on "Create New Session" from your
-                    dashboard, fill out the session details, and publish it for others to join.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>Is SkillShare Hub free to use?</AccordionTrigger>
-                  <AccordionContent>
-                    SkillShare Hub is completely free for basic usage. We offer premium features for power users who
-                    host multiple sessions or need advanced tools, but the core functionality is available to everyone
-                    at no cost.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>What types of sessions can I create?</AccordionTrigger>
-                  <AccordionContent>
-                    You can create sessions on any topic you're knowledgeable about. Popular categories include
-                    programming, languages, mathematics, science, art, music, and professional skills. Sessions can be
-                    online or in-person.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-5">
-                  <AccordionTrigger>How do I cancel a session I've joined?</AccordionTrigger>
-                  <AccordionContent>
-                    You can view all sessions you've joined in the "My Sessions" page under the "Joined" tab. From
-                    there, you can click "Leave Session" on any session you wish to cancel your participation in.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-          </div>
-        </section>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Creating account..." : "Sign Up"}
+          </Button>
+        </form>
 
-        <section className="container py-24 space-y-8">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Ready to start learning together?</h2>
-            <p className="text-muted-foreground md:text-xl max-w-[600px] mx-auto">
-              Join thousands of students who are already enhancing their education through peer learning.
-            </p>
-          </div>
-          <div className="flex justify-center mt-8">
-            <Link href="/signup">
-              <Button size="lg" className="gap-2">
-                Sign Up Now <ArrowRight className="h-4 w-4" />
-              </Button>
+        <div className="text-center text-sm">
+          <p className="text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/login" className="font-medium text-primary hover:underline">
+              Log in
             </Link>
-          </div>
-        </section>
-      </main>
-      <footer className="border-t py-8 bg-muted/50">
-        <div className="container flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            <span className="font-semibold">SkillShare Hub</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} SkillShare Hub. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
-              Privacy
-            </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
-              Terms
-            </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
-              Contact
-            </Link>
-          </div>
         </div>
-      </footer>
-    </div>
+      </div>
+    </motion.div>
   )
 }
+
+
 
