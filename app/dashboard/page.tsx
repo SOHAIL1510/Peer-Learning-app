@@ -158,42 +158,6 @@ export default function DashboardPage() {
   const categories = ["Programming", "Mathematics", "Languages", "Data Science", "Literature", "Physics"]
 
   return (
-        <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-50 to-purple-50">
-      <DashboardHeader />
-      <main className="flex-1 container py-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Discover Sessions
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Browse and join peer learning sessions that match your interests
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <Link href="/create-session">
-              <Button className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
-                <Plus className="h-4 w-4" /> Create Session
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-8">
-          <SessionFilter />
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              {sessions.map((session) => (
-                <SessionCard key={session.id} session={session} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
-}
-
     <div className="flex min-h-screen flex-col">
       <AppHeader />
       <main className="flex-1 container py-8">
