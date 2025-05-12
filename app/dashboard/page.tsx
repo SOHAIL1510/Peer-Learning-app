@@ -150,7 +150,7 @@ export default function DashboardPage() {
   const confirmJoinSession = () => {
     toast({
       title: "Session joined!",
-      description:'You have successfully joined "${selectedSession.title}"',
+      description: `You have successfully joined "${selectedSession.title}"`,
     })
     setIsJoinModalOpen(false)
   }
@@ -284,10 +284,11 @@ export default function DashboardPage() {
       <JoinSessionModal
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
-        onConfirm={confirmJoinSession}
+        onConfirm={
+          confirmJoinSession}
         session={selectedSession}
-      />
-    </div>
-  )
-}
+        />
+      </div>
+    )
+  }
 
